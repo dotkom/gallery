@@ -1,0 +1,44 @@
+{
+  "name": "gallery",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "nodemon src/server/index.ts",
+    "build": "next build",
+    "start": "NODE_ENV=production node ./src/server.ts"
+  },
+  "dependencies": {
+    "@types/axios": "^0.14.0",
+    "@types/express": "^4.17.2",
+    "@types/express-session": "^1.15.16",
+    "@types/humps": "^1.1.2",
+    "@types/passport": "^1.0.2",
+    "@types/styled-components": "^4.4.1",
+    "axios": "^0.19.0",
+    "babel-plugin-styled-components": "^1.10.6",
+    "dotenv": "^8.2.0",
+    "dotenv-webpack": "^1.7.0",
+    "express": "^4.17.1",
+    "express-session": "^1.17.0",
+    "formik": "^2.0.8",
+    "humps": "^2.0.1",
+    "ky": "^0.16.1",
+    "ky-universal": "^0.3.0",
+    "next": "9.1.6",
+    "nodemon": "^2.0.2",
+    "openid-client": "^3.9.2",
+    "passport": "^0.4.1",
+    "react": "^0.0.0-experimental-f42431abe",
+    "react-async": "^10.0.0",
+    "react-dom": "^0.0.0-experimental-f42431abe",
+    "styled-components": "^4.4.1",
+    "ts-node": "^8.5.4",
+    "tsconfig-paths-webpack-plugin": "^3.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^12.12.21",
+    "@types/react": "^16.9.16",
+    "@types/react-dom": "^16.9.4",
+    "typescript": "^3.7.3"
+  }
+}
