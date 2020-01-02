@@ -1,25 +1,18 @@
-import { requests } from 'api/requests';
-import { getTagsUrl, getTagUrl } from 'api/urls';
+import { getTagsUrl } from 'api/urls';
 import { IUserTagData, IUserTag } from 'models/Tag';
-import { ListResource } from 'models/Django';
+import { Resource, BaseQueryParams } from 'api/resource';
 
-export const getUserTags = async (query: string) => {
-  console.log(query);
-  return await requests.get(getTagsUrl()).json<ListResource<IUserTag>>();
-};
+interface TagQueryParams extends BaseQueryParams {
+  createdDate__lte: string;
+  createdDate__gte: string;
+  user: number;
+  album: number;
+}
 
-export const getUserTag = async (tagId: number) => {
-  return await requests.get(getTagUrl(tagId)).json<IUserTag>();
-};
+export class UserTagResource extends Resource<IUserTag, IUserTagData> {
+  path = getTagsUrl();
 
-export const createUserTag = async (tagData: IUserTagData) => {
-  return await requests.post(getTagsUrl(), { json: tagData }).json<IUserTag>();
-};
-
-export const updateUserTag = async (tagId: number, tagData: Partial<IUserTagData>) => {
-  return await requests.patch(getTagUrl(tagId), { json: tagData }).json<IUserTag>();
-};
-
-export const deleteUserTag = async (tagId: number) => {
-  return await requests.delete(getTagUrl(tagId)).json<undefined>();
-};
+  getListUrl(queryParams?: TagQueryParams) {
+    return super.getListUrl(queryParams);
+  }
+}

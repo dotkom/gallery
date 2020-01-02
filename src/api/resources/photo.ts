@@ -1,28 +1,19 @@
-import { requests } from 'api/requests';
-import { getPhotoUrl, getPhotosUrl } from 'api/urls';
-import { IPhotoUpload, IPhoto, IPhotoData } from 'models/Photo';
-import { ListResource } from 'models/Django';
-//import { API_URL } from 'constants/environment';
-//import { getUser } from 'utils/auth';
+import { getPhotosUrl } from 'api/urls';
+import { IPhoto, IPhotoData, IPhotoUpload } from 'models/Photo';
+import { Resource, BaseQueryParams } from 'api/resource';
 
-export const getPhotos = async (albumId?: number) => {
-  return await requests.get(getPhotosUrl(albumId)).json<ListResource<IPhoto>>();
-};
+interface PhotoQueryParams extends BaseQueryParams {
+  album: number;
+  query: string;
+  photographer: number;
+  createdDate__gte: string;
+  createdDate__lte: string;
+}
 
-export const getPhoto = async (photoId: number) => {
-  return await requests.get(getPhotoUrl(photoId)).json<IPhoto>();
-};
+export class PhotoResource extends Resource<IPhoto, IPhotoUpload, IPhoto, IPhotoData> {
+  path = getPhotosUrl();
 
-type ProgressListener = (progressEvent: ProgressEvent) => void;
-
-export const uploadPhoto = async (photoData: IPhotoUpload, _?: ProgressListener) => {
-  return await requests.post(getPhotosUrl(), { json: photoData }).json<IPhoto>();
-};
-
-export const updatePhoto = async (photoId: number, photoData: Partial<IPhotoData>) => {
-  return await requests.patch(getPhotoUrl(photoId), { json: photoData }).json<IPhoto>();
-};
-
-export const deletePhoto = async (photoId: number) => {
-  return await requests.delete(getPhotoUrl(photoId)).json<IPhoto>();
-};
+  getListUrl(queryParams?: PhotoQueryParams) {
+    return super.getListUrl(queryParams);
+  }
+}
