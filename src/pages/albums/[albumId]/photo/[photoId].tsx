@@ -1,32 +1,34 @@
-import React, { FC } from 'react';
-import { NextPageContext } from 'next';
-import { IUser } from 'models/auth';
+import React from 'react';
 import { useRouter } from 'next/router';
-import { useResource } from 'api/hooks';
-import { getPhoto } from 'api/resources/photo';
+import { useDetailResource } from 'api/hooks';
+import { PhotoResource } from 'api/resources/photo';
 import { IPhoto } from 'models/Photo';
+import { BASE_URL } from 'constants/environment';
+import { getServerFetcher } from 'api/requests';
+import { NextPageFC } from 'pages/PageModels';
 
-type PageProps = { user: IUser };
+const photoResource = new PhotoResource();
 
-type GetInitialProps<InitialProps = {}> = (ctx: NextPageContext) => Promise<InitialProps>;
-
-type NextPageFC<InitialProps = {}, OwnProps = {}> = FC<InitialProps & OwnProps & PageProps> & {
-  getInitialProps: GetInitialProps<InitialProps>;
-};
-
-const ViewPhotoPage: NextPageFC<{ initialValue: IPhoto }> = ({ initialValue }) => {
-  console.log(initialValue);
+const ViewPhotoPage: NextPageFC<{ initialData: IPhoto }> = ({ initialData }) => {
   const router = useRouter();
   const photoId = Number(router.query.photoId);
-  const { data } = useResource(getPhoto, [photoId]);
-  console.log(data);
-  return <p>Bilde</p>;
+  const { data: photo } = useDetailResource(photoResource, [photoId], { initialData });
+  const STATIC_PATH = `${BASE_URL}`;
+  const imagePath = `${STATIC_PATH}${photo.image.lg}`;
+  return (
+    <>
+      <p>Bilde</p>
+      <img src={imagePath} />
+    </>
+  );
 };
 
 ViewPhotoPage.getInitialProps = async (ctx) => {
+  const fetcher = getServerFetcher(ctx.req?.user);
+  const ssrPhotoResource = new PhotoResource(fetcher);
   const photoId = Number(ctx.query.photoId);
-  const photo = await getPhoto(photoId);
-  return { initialValue: photo };
+  const photo = await ssrPhotoResource.retrieve(photoId);
+  return { initialData: photo };
 };
 
 export default ViewPhotoPage;

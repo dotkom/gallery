@@ -1,57 +1,46 @@
-import React, { FC } from 'react';
-import { NextPageContext } from 'next';
-import { IUser } from 'models/auth';
+import React from 'react';
+import styled from 'styled-components';
 import { useRouter } from 'next/router';
-import { useResource } from 'api/hooks';
-import { getAlbum } from 'api/resources/album';
+import { useDetailResource, useListResource } from 'api/hooks';
+import { AlbumResource } from 'api/resources/album';
 import { IAlbum } from 'models/Album';
-import { getPhoto } from 'api/resources/photo';
-import { BASE_URL } from 'constants/environment';
+import { PhotoResource } from 'api/resources/photo';
+import { getServerFetcher } from 'api/requests';
+import { NextPageFC } from 'pages/PageModels';
+import { PhotoPreview } from 'components/photo/PhotoPreview';
 
-type PageProps = { user: IUser };
+const ImageGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  grid-auto-rows: 40px;
+`;
 
-type GetInitialProps<InitialProps = {}> = (ctx: NextPageContext) => Promise<InitialProps>;
+const albumResource = new AlbumResource();
+const photoResource = new PhotoResource();
 
-type NextPageFC<InitialProps = {}, OwnProps = {}> = FC<InitialProps & OwnProps & PageProps> & {
-  getInitialProps: GetInitialProps<InitialProps>;
-};
-
-interface IPhotoProps {
-  photoId: number;
-}
-
-const Photo: FC<IPhotoProps> = ({ photoId }) => {
-  const { data: photo } = useResource(getPhoto, [photoId]);
-  const STATIC_PATH = `${BASE_URL}`;
-  const imagePath = `${STATIC_PATH}${photo.image.sm}`;
-  return (
-    <div>
-      {photo.title}
-      <img src={imagePath} />
-    </div>
-  );
-};
-
-const ViewPhotoPage: NextPageFC<{ initialValue: IAlbum }> = ({ initialValue }) => {
-  console.log(initialValue);
+const ViewPhotoPage: NextPageFC<{ initialData: IAlbum }> = ({ initialData }) => {
   const router = useRouter();
   const albumId = Number(router.query.albumId);
-  const { data: album } = useResource(getAlbum, [albumId]);
-  console.log(album);
+  const { data: album } = useDetailResource(albumResource, [albumId], { initialData });
+  const { data: photos } = useListResource(photoResource, [{ pageSize: 60 }]);
   return (
     <>
-      <p>Bilde</p>
-      {album.photos.map((photoId) => (
-        <Photo key={photoId} photoId={photoId} />
-      ))}
+      <p>Bilde - {album.title}</p>
+      <ImageGrid>
+        {photos.results.map((photo) => (
+          <PhotoPreview key={photo.id} photo={photo} />
+        ))}
+      </ImageGrid>
     </>
   );
 };
 
 ViewPhotoPage.getInitialProps = async (ctx) => {
+  const fetcher = getServerFetcher(ctx.req?.user);
+  const ssrAlbumResource = new AlbumResource(fetcher);
   const albumId = Number(ctx.query.albumId);
-  const album = await getAlbum(albumId);
-  return { initialValue: album };
+  const album = await ssrAlbumResource.retrieve(albumId);
+  return { initialData: album };
 };
 
 export default ViewPhotoPage;
