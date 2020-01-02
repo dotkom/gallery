@@ -8,7 +8,6 @@ type Middleware = (req: Request, res: Response, next: NextFunction) => void | Pr
  */
 export const userMiddleware: Middleware = async (req, _, next) => {
   // This is the only place the user may be undefined.
-  console.log(req.user);
   if (!req.user) {
     req.user = anonymousUser;
   }
