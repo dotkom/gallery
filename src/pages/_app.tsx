@@ -1,25 +1,21 @@
 import React from 'react';
-import { AppContext, AppInitialProps, AppProps } from 'next/app';
 import Head from 'next/head';
-import { NextPageContext } from 'next';
-import { IUser, anonymousUser } from 'models/auth';
+import { AppInitialProps, AppProps } from 'next/app';
+import { anonymousUser } from 'models/auth';
 import { UserProvider } from 'contexts/UserContext';
 import { IsomorphicSuspense } from 'components/common/IsomorphicSuspense';
-
-/** Redeclare the request object for next apps to an express request */
-type CustomAppContext = Omit<AppContext, 'ctx'> & {
-  ctx: Omit<NextPageContext, 'req'> & {
-    req?: Express.Request;
-  };
-};
-
-type PageProps = { user: IUser };
+import { AppErrorBoundary } from 'components/common/errorBoundaries/AppErrorBoundary';
+import { PageErrorBoundary } from 'components/common/errorBoundaries/PageErrorBoundary';
+import { AppContext, PageProps } from './PageModels';
 
 type InitialProps = AppInitialProps & {
-  pageProps: PageProps
-}
+  pageProps: PageProps;
+};
 
-const getInitialProps = async ({ Component, ctx }: CustomAppContext): Promise<InitialProps> => {
+/**
+ * Amend Next context object for all `getInitialProps` functions in regular pages with the user.
+ */
+const getInitialProps = async ({ Component, ctx }: AppContext): Promise<InitialProps> => {
   let pageProps: PageProps = {
     user: ctx.req?.user || anonymousUser,
   };
@@ -37,14 +33,18 @@ type Props = AppProps;
 const CustomApp = (appProps: Props): JSX.Element => {
   const { Component, pageProps } = appProps;
   return (
-    <IsomorphicSuspense fallback="suspending">
-      <UserProvider user={pageProps.user}>
-      <Head>
-        <title>Gallery | Linjeforeningen Online</title>
-      </Head>
-      <Component {...pageProps} />
-    </UserProvider>
-    </IsomorphicSuspense>
+    <AppErrorBoundary>
+      <PageErrorBoundary>
+        <IsomorphicSuspense fallback="suspending">
+          <UserProvider user={pageProps.user}>
+            <Head>
+              <title>Gallery | Linjeforeningen Online</title>
+            </Head>
+            <Component {...pageProps} />
+          </UserProvider>
+        </IsomorphicSuspense>
+      </PageErrorBoundary>
+    </AppErrorBoundary>
   );
 };
 

@@ -2,8 +2,8 @@ import { Suspense as ClientSuspense, FC, ComponentProps } from 'react';
 
 type SuspenseComponent = FC<ComponentProps<typeof ClientSuspense>>;
 
-const ServerSuspense: SuspenseComponent = () => {
-  return <></>;
+const ServerSuspense: SuspenseComponent = ({ fallback }) => {
+  return <>{fallback}</>;
 };
 
 export const IsomorphicSuspense: SuspenseComponent = (props) => {

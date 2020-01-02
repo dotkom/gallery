@@ -1,9 +1,6 @@
 import React from 'react';
-import { useUser } from 'contexts/UserContext';
 
 const Home = () => {
-  const { user } = useUser();
-  console.log(user);
   return (
     <div>
       <div className="hero">
