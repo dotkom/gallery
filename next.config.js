@@ -3,8 +3,9 @@ require('dotenv').config();
 const path = require('path');
 const Dotenv = require('dotenv-webpack');
 const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
+const withOffline = require('next-offline');
 
-module.exports = {
+nextConfig = {
   webpack: (config, options) => {
     config.plugins = config.plugins || [];
     config.resolve.plugins = config.resolve.plugins || [];
@@ -25,3 +26,5 @@ module.exports = {
     reactMode: 'concurrent',
   },
 };
+
+module.exports = withOffline(nextConfig);

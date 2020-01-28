@@ -38,7 +38,7 @@ const CustomApp = (appProps: Props): JSX.Element => {
         <IsomorphicSuspense fallback="suspending">
           <UserProvider user={pageProps.user}>
             <Head>
-              <title>Gallery | Linjeforeningen Online</title>
+              <title>Galleri | Linjeforeningen Online</title>
             </Head>
             <Component {...pageProps} />
           </UserProvider>

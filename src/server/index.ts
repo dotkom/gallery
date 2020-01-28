@@ -1,6 +1,7 @@
 import { __DEV__ } from '../constants/environment';
 import { PORT, HOST, SESSION_SECRET } from '../constants/server';
 
+import path from 'path';
 import dotenv from 'dotenv';
 import express from 'express';
 import http from 'http';
@@ -33,6 +34,7 @@ const setup = async () => {
   await app.prepare();
   await configurePassport();
   const server = express();
+  server.use(express.static(path.join(__dirname, 'static', 'images', 'icons', 'favicon.ico')));
   server.use(session(sessionConfig));
   server.use(userMiddleware);
 
