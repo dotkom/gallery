@@ -6,8 +6,8 @@ interface PhotoQueryParams extends BaseQueryParams {
   album: number;
   query: string;
   photographer: number;
-  createdDate__gte: string;
-  createdDate__lte: string;
+  createdDate_Gte: string;
+  createdDate_Lte: string;
 }
 
 export class PhotoResource extends Resource<IPhoto, IPhotoUpload, IPhoto, IPhotoData> {

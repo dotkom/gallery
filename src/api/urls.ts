@@ -10,3 +10,6 @@ export const getPhotoUrl = (photoId: Param) => `${ALBUMS_BASE}/photos/${photoId}
 
 export const getTagsUrl = () => `${ALBUMS_BASE}/tags`;
 export const getTagUrl = (tagId: Param) => `${ALBUMS_BASE}/tags/${tagId}/`;
+
+export const getUsersUrl = () => `/users`;
+export const getUserUrl = (userId: Param) => `/albums/${userId}/`;

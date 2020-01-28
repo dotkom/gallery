@@ -3,8 +3,8 @@ import { getAlbumsUrl } from 'api/urls';
 import { Resource, BaseQueryParams } from 'api/resource';
 
 interface AlbumQueryParams extends BaseQueryParams {
-  publishedDate__lte: string;
-  publishedDate__gte: string;
+  publishedDate_Lte: string;
+  publishedDate_Gte: string;
   public: boolean;
 }
 

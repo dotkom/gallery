@@ -12,6 +12,48 @@ export interface BaseQueryParams {
   format: 'json';
 }
 
+type FieldType =
+  | 'field'
+  | 'boolean'
+  | 'string'
+  | 'url'
+  | 'email'
+  | 'regex'
+  | 'slug'
+  | 'integer'
+  | 'float'
+  | 'decimal'
+  | 'date'
+  | 'datetime'
+  | 'time'
+  | 'choice'
+  | 'multiple_choice'
+  | 'file_upload'
+  | 'image_upload'
+  | 'list'
+  | 'nested_object';
+
+interface FieldMetadata {
+  type: FieldType;
+  required: boolean;
+  readOnly: boolean;
+  label?: string;
+  maxLength?: number;
+  helpText?: string;
+}
+
+type RequestMethod = 'GET' | 'POST' | 'PUT' | 'PATCH';
+
+interface MetadataResponse {
+  name: string;
+  description: string;
+  renders: string[];
+  parses: string[];
+  actions: {
+    [T in keyof RequestMethod]?: FieldMetadata;
+  };
+}
+
 export interface IResource<
   RetrieveData,
   CreateData = RetrieveData,
@@ -33,16 +75,10 @@ export interface IResource<
 
   update(id: Param, data: Partial<UpdateData>): Promise<RetrieveData>;
 
-  delete(id: Param): Promise<DeleteData>;
+  destroy(id: Param): Promise<DeleteData>;
 }
 
-export class Resource<
-  RetrieveData,
-  CreateData = RetrieveData,
-  ListData = RetrieveData,
-  UpdateData = CreateData,
-  DeleteData = null
-> implements IResource<RetrieveData, CreateData, ListData, UpdateData, DeleteData> {
+export class BaseResource {
   path = '';
 
   constructor(public fetcher = requests) {}
@@ -50,24 +86,33 @@ export class Resource<
   public getListUrl(queryParams = {}): string {
     const snakeCasedParams = humps.decamelizeKeys(queryParams);
     const queryString = queryParser.stringify(snakeCasedParams);
-    console.log(queryString);
     return `${this.path}/?${queryString}`;
   }
 
-  public getDetailUrl(id: Param) {
+  public getDetailUrl(id: Param): string {
     return `${this.path}/${id}/`;
   }
 
-  public async list(...params: Parameters<typeof Resource.prototype.getListUrl>) {
-    return await this.fetcher.get(this.getListUrl(...params)).json<ListResource<ListData>>();
+  protected async performOptions(url: string) {
+    const response = await this.fetcher.get(url).json<MetadataResponse>();
+    return response;
   }
 
-  public async retrieve(...params: Parameters<typeof Resource.prototype.getDetailUrl>) {
-    return await this.fetcher.get(this.getDetailUrl(...params)).json<RetrieveData>();
+  protected async performList<ReturnData>(queryParams = {}): Promise<ListResource<ReturnData>> {
+    const url = this.getListUrl(queryParams);
+    const response = await this.fetcher.get(url).json<ListResource<ReturnData>>();
+    return response;
   }
 
-  public async create(data: CreateData) {
-    const response = await this.fetcher.post(this.getListUrl(), { json: data }).json<RetrieveData>();
+  protected async performRetrieve<ReturnData>(key: Param): Promise<ReturnData> {
+    const url = this.getDetailUrl(key);
+    const response = await this.fetcher.get(url).json<ReturnData>();
+    return response;
+  }
+
+  protected async performCreate<Data, ReturnData>(data: Data): Promise<ReturnData> {
+    const url = this.getListUrl();
+    const response = await this.fetcher.post(url, { json: data }).json<ReturnData>();
     // Mutate newly created models to add it to the cache.
     // This will make the first detail fetch of the model instant.
     // const futureUrl = this.getDetailUrl(response.id);
@@ -75,15 +120,45 @@ export class Resource<
     return response;
   }
 
-  public async update(id: Param, data: Partial<UpdateData>) {
-    const url = this.getDetailUrl(id);
-    const response = await this.fetcher.patch(url, { json: data }).json<RetrieveData>();
+  protected async performUpdate<Data, ReturnData>(key: Param, data: Partial<Data>): Promise<ReturnData> {
+    const url = this.getDetailUrl(key);
+    const response = await this.fetcher.patch(url, { json: data }).json<ReturnData>();
     // Mutate local state version of the model after getting the updated version from the API.
     mutate(url, response, false);
     return response;
   }
 
-  public async delete<Output = null>(id: Param) {
-    return await this.fetcher.delete(this.getDetailUrl(id)).json<Output>();
+  protected async performDestroy<ReturnData>(key: Param): Promise<ReturnData> {
+    const url = this.getDetailUrl(key);
+    const response = await this.fetcher.delete(url).json<ReturnData>();
+    return response;
+  }
+}
+
+export class Resource<
+  RetrieveData,
+  CreateData = RetrieveData,
+  ListData = RetrieveData,
+  UpdateData = CreateData,
+  DestroyData = null
+> extends BaseResource implements IResource<RetrieveData, CreateData, ListData, UpdateData, DestroyData> {
+  public async list(...params: Parameters<typeof Resource.prototype.getListUrl>) {
+    return await this.performList<ListData>(...params);
+  }
+
+  public async retrieve(...params: Parameters<typeof Resource.prototype.getDetailUrl>) {
+    return await this.performRetrieve<RetrieveData>(...params);
+  }
+
+  public async create(data: CreateData) {
+    return await this.performCreate<CreateData, RetrieveData>(data);
+  }
+
+  public async update(id: Param, data: Partial<UpdateData>) {
+    return await this.performUpdate<UpdateData, RetrieveData>(id, data);
+  }
+
+  public async destroy(id: Param) {
+    return await this.performDestroy<DestroyData>(id);
   }
 }

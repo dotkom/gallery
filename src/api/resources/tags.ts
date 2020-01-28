@@ -3,8 +3,8 @@ import { IUserTagData, IUserTag } from 'models/Tag';
 import { Resource, BaseQueryParams } from 'api/resource';
 
 interface TagQueryParams extends BaseQueryParams {
-  createdDate__lte: string;
-  createdDate__gte: string;
+  createdDate_Lte: string;
+  createdDate_Gte: string;
   user: number;
   album: number;
 }
